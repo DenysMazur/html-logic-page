@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>HTML Logic Page</title>
+</head>
+<style type="text/css">
+    .element {
+        color: red;
+        display: flex;
+        height: 100px;
+        border: 1px solid red;
+        margin-bottom: 2px;
+        align-items: center;
+        justify-content: center;
+    }
+</style>
+<body>
+    <script>
+        const root = document.querySelector('body');
+
+        const addElementsList = (numberOfElements) => {
+            const array = new Array(numberOfElements).fill(null).map((_, index) => createElement(index));
+            root.prepend(...array);
+        }
+
+        const createElement = (index) => {
+            const elem = document.createElement('div');
+            elem.innerText = `div${index}`;
+            elem.dataset.startPosition = index;
+            elem.dataset.currentPosition = index;
+            elem.dataset.clicks = 0;
+            if (index === 0) {
+                elem.dataset.start = 'start';
+            }
+            elem.classList.add('element');
+            elem.addEventListener('click', handleClickFunction);
+            return elem;
+        }
+
+        const handleClickFunction = (event) => {
+            const currentElem = event.target;
+            const clicks = +currentElem.dataset.clicks + 1;
+            if (clicks < 2) {
+                currentElem.dataset.clicks = clicks;
+                if (currentElem.dataset.start === 'start') {
+                    const nextElement = currentElem.nextElementSibling;
+                    if (nextElement.tagName !== 'DIV') {
+                        const prevElement = currentElem.previousElementSibling;
+                        prevElement.dataset.start = 'start';
+                    } else {
+                        nextElement.dataset.start = 'start';
+                    }
+                    delete currentElem.dataset.start;
+                }
+                root.prepend(currentElem);
+                return;
+            }
+            const startElem = document.querySelector('[data-start]')
+            if (startElem.dataset.startPosition > currentElem.dataset.startPosition) {
+                delete startElem.dataset.start;
+                currentElem.dataset.start = 'start'
+                startElem.before(currentElem);
+            }
+            let isFoundStartElem = false
+            const siblingsAfterStartList = Array.from(root.children)
+                .filter(elem => elem.tagName === 'DIV')
+                .filter(elem => {
+                    if (elem.dataset.start) {
+                        isFoundStartElem = true;
+                        return;
+                    }
+
+                    if (isFoundStartElem) {
+                        return elem;
+                    }
+                })
+            appendElementToPrevPosition(siblingsAfterStartList, currentElem);
+            event.target.dataset.clicks = 0;
+        }
+
+        const appendElementToPrevPosition = (listSiblings, currentElem) => {
+            let prevSibling = '';
+            listSiblings.forEach(elem => {
+                if (prevSibling) {
+                    return;
+                }
+                if (elem.dataset.startPosition < currentElem.dataset.startPosition) {
+                    return;
+                }
+                prevSibling = elem;
+            })
+            if (!prevSibling) {
+                listSiblings[listSiblings.length-1].after(currentElem)
+                return;
+            }
+            prevSibling.before(currentElem)
+        }
+
+        addElementsList(100);
+    </script>
+</body>
+</html>
