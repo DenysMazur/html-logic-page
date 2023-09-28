@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>HTML Logic Page</title>
+</head>
+<style type="text/css">
+    .element {
+        color: red;
+        display: flex;
+        height: 100px;
+        border: 1px solid red;
+        margin-bottom: 2px;
+        align-items: center;
+        justify-content: center;
+    }
+</style>
+<body>
+<script>
+    const root = document.querySelector('body');
+
+    const addElementsList = (numberOfElements) => {
+        const array = new Array(numberOfElements).fill(null).map((_, index) => createElement(index));
+        root.prepend(...array);
+    }
+
+    const createElement = (index) => {
+        const elem = document.createElement('div');
+        elem.innerText = `div${index}`;
+        elem.dataset.startPosition = index;
+        elem.dataset.clicks = 0;
+        elem.classList.add('element');
+        elem.addEventListener('click', handleClickFunction);
+        return elem;
+    }
+
+    const handleClickFunction = (event) => {
+        const currentElem = event.target;
+        const clicks = +currentElem.dataset.clicks + 1;
+        if (clicks < 2) {
+            currentElem.dataset.clicks = clicks;
+            root.prepend(currentElem);
+            return;
+        }
+
+        const siblingsList = Array.from(root.children)
+            .filter(elem => elem.tagName === 'DIV')
+        appendElementToPrevPosition(siblingsList, currentElem);
+        event.target.dataset.clicks = 0;
+    }
+
+    const appendElementToPrevPosition = (listSiblings, currentElem) => {
+        const elemPosition = +currentElem.dataset.startPosition;
+        if (!elemPosition) {
+            root.prepend(currentElem);
+            return;
+        }
+        
+        if (+elemPosition === listSiblings.length - 1) {
+            listSiblings[listSiblings.length -1].after(currentElem);
+            return;
+        }
+        const prevSibling = listSiblings[elemPosition];
+        prevSibling.after(currentElem);
+    }
+
+    addElementsList(100);
+</script>
+</body>
+</html>
